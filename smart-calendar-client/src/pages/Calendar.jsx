@@ -14,6 +14,9 @@ import EventModal from '../components/EventModal.jsx';
 import { fetchAISuggestions } from '../services/aiService.js';
 import enUS from 'date-fns/locale/en-US';
 
+// Import the CSS file
+import '../styles/Calendar.css';
+
 // Date-fns setup for the calendar
 const locales = {
     'en-US': enUS
@@ -27,200 +30,6 @@ const localizer = dateFnsLocalizer({
     locales
 });
 
-// Improved calendar styles
-const calendarStyles = `
-/* Base calendar styles */
-.rbc-calendar {
-    background-color: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-/* Month view container */
-.rbc-month-view {
-    border: 1px solid #e0e0e0;
-    background-color: white;
-}
-
-/* Day cells */
-.rbc-day-bg {
-    transition: background-color 0.15s ease;
-}
-
-/* Day cells hover effect */
-.rbc-day-bg:hover {
-    background-color: #f0f9ff;
-}
-
-/* Off-range days (previous/next month) */
-.rbc-off-range-bg {
-    background-color: #f8f9fa;
-}
-
-.rbc-off-range {
-    color: #adb5bd;
-}
-
-/* Today's cell highlighting */
-.rbc-today {
-    background-color: #e6f7ff;
-}
-
-/* Header row styling */
-.rbc-header {
-    background-color: #f8f9fa;
-    padding: 10px 0;
-    font-weight: 600;
-    border-bottom: 1px solid #e0e0e0;
-    color: #343a40;  /* Darker text for better visibility in both light and dark modes */
-}
-
-/* Dark mode adjustments */
-.dark .rbc-calendar {
-    background-color: #1e1e1e;
-    border-color: #4a4a4a;
-}
-
-.dark .rbc-month-view {
-    border-color: #4a4a4a;
-    background-color: #2d2d2d;
-}
-
-.dark .rbc-header {
-    background-color: #333;
-    border-color: #4a4a4a;
-    color: #e0e0e0;  /* Light text for dark mode */
-}
-
-.dark .rbc-day-bg {
-    background-color: #2d2d2d;
-}
-
-.dark .rbc-day-bg:hover {
-    background-color: #3a3a3a;
-}
-
-.dark .rbc-today {
-    background-color: #1a365d;  /* Dark blue for today in dark mode */
-}
-
-.dark .rbc-off-range-bg {
-    background-color: #262626;
-}
-
-.dark .rbc-off-range {
-    color: #666;
-}
-
-/* Event styling */
-.rbc-event {
-    border-radius: 4px;
-    padding: 2px 5px;
-    font-size: 0.85rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    margin: 1px 0;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.rbc-event:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-/* Toolbar styling */
-.rbc-toolbar {
-    padding: 15px;
-    border-bottom: 1px solid #e0e0e0;
-    margin-bottom: 0;
-}
-
-.dark .rbc-toolbar {
-    border-color: #4a4a4a;
-}
-
-.rbc-toolbar-label {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #343a40;  /* Darker for better visibility */
-}
-
-.dark .rbc-toolbar-label {
-    color: #e0e0e0;
-}
-
-.rbc-btn-group {
-    margin-bottom: 0;
-}
-
-.rbc-btn-group button {
-    color: #495057;
-    border-color: #ced4da;
-    background-color: white;
-    transition: all 0.15s ease;
-}
-
-.rbc-btn-group button:hover {
-    background-color: #f8f9fa;
-    border-color: #adb5bd;
-}
-
-.rbc-btn-group button.rbc-active {
-    background-color: #e6f7ff;
-    color: #0366d6;
-    border-color: #0366d6;
-}
-
-.dark .rbc-btn-group button {
-    color: #e0e0e0;
-    border-color: #4a4a4a;
-    background-color: #333;
-}
-
-.dark .rbc-btn-group button:hover {
-    background-color: #444;
-    border-color: #666;
-}
-
-.dark .rbc-btn-group button.rbc-active {
-    background-color: #1a365d;
-    color: #63b3ed;
-    border-color: #2b6cb0;
-}
-
-/* Time grid adjustments */
-.rbc-time-content {
-    border-top: 1px solid #e0e0e0;
-}
-
-.dark .rbc-time-content {
-    border-color: #4a4a4a;
-}
-
-.rbc-time-header-content {
-    border-left: 1px solid #e0e0e0;
-}
-
-.dark .rbc-time-header-content {
-    border-color: #4a4a4a;
-}
-
-.rbc-timeslot-group {
-    border-bottom: 1px solid #e9ecef;
-}
-
-.dark .rbc-timeslot-group {
-    border-color: #3a3a3a;
-}
-
-.rbc-current-time-indicator {
-    background-color: #dc3545;
-    height: 2px;
-}
-`;
-
 function Calendar() {
     const [events, setEvents] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -231,17 +40,6 @@ function Calendar() {
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [view, setView] = useState('month');
     const [loading, setLoading] = useState(true);
-
-    // Inject custom styles
-    useEffect(() => {
-        const styleElement = document.createElement('style');
-        styleElement.innerHTML = calendarStyles;
-        document.head.appendChild(styleElement);
-
-        return () => {
-            document.head.removeChild(styleElement);
-        };
-    }, []);
 
     // Fetch events from Firestore
     useEffect(() => {

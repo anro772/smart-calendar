@@ -1,0 +1,189 @@
+/* src/styles/Calendar.css */
+
+/* Base calendar styles */
+.rbc-calendar {
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Month view container */
+.rbc-month-view {
+  border: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+/* Day cells */
+.rbc-day-bg {
+  transition: background-color 0.15s ease;
+}
+
+/* Day cells hover effect */
+.rbc-day-bg:hover {
+  background-color: #f3f4f6;
+}
+
+/* Off-range days (previous/next month) */
+.rbc-off-range-bg {
+  background-color: #f8fafc;
+}
+
+.rbc-off-range {
+  color: #9ca3af;
+}
+
+/* Today's cell highlighting */
+.rbc-today {
+  background-color: #ebf5ff;
+}
+
+/* Header row styling */
+.rbc-header {
+  background-color: #f9fafb;
+  padding: 10px 0;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+/* Event styling */
+.rbc-event {
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin: 1px 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rbc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Toolbar styling */
+.rbc-toolbar {
+  padding: 15px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 0;
+}
+
+.rbc-toolbar-label {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rbc-btn-group {
+  margin-bottom: 0;
+}
+
+.rbc-btn-group button {
+  color: #4b5563;
+  border-color: #d1d5db;
+  background-color: white;
+  transition: all 0.15s ease;
+}
+
+.rbc-btn-group button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.rbc-btn-group button.rbc-active {
+  background-color: #e5edff;
+  color: #3b82f6;
+  border-color: #60a5fa;
+}
+
+/* Time grid adjustments */
+.rbc-time-content {
+  border-top: 1px solid #e5e7eb;
+}
+
+.rbc-time-header-content {
+  border-left: 1px solid #e5e7eb;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.rbc-current-time-indicator {
+  background-color: #ef4444;
+  height: 2px;
+}
+
+/* Dark mode adjustments */
+.dark .rbc-calendar {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .rbc-month-view {
+  border-color: #374151;
+  background-color: #1f2937;
+}
+
+.dark .rbc-header {
+  background-color: #111827;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+
+.dark .rbc-day-bg {
+  background-color: #1f2937;
+}
+
+.dark .rbc-day-bg:hover {
+  background-color: #2d3748;
+}
+
+.dark .rbc-today {
+  background-color: #172554;
+}
+
+.dark .rbc-off-range-bg {
+  background-color: #111827;
+}
+
+.dark .rbc-off-range {
+  color: #6b7280;
+}
+
+.dark .rbc-toolbar {
+  border-color: #374151;
+}
+
+.dark .rbc-toolbar-label {
+  color: #f3f4f6;
+}
+
+.dark .rbc-btn-group button {
+  color: #e5e7eb;
+  border-color: #4b5563;
+  background-color: #1f2937;
+}
+
+.dark .rbc-btn-group button:hover {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.dark .rbc-btn-group button.rbc-active {
+  background-color: #1e40af;
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+
+.dark .rbc-time-content,
+.dark .rbc-time-header-content {
+  border-color: #374151;
+}
+
+.dark .rbc-timeslot-group {
+  border-color: #1f2937;
+}
