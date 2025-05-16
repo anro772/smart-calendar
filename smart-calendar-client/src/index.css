@@ -1,130 +1,27 @@
-/* src/index.css */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+/* src/index.css - Tailwind v3 directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@layer base {
-  :root {
-    --color-primary: 14 165 233;
-    --color-secondary: 100 116 139;
-    --color-accent: 16 185 129;
-  }
-
-  .dark {
-    --color-primary: 56 189 248;
-    --color-secondary: 148 163 184;
-    --color-accent: 52 211 153;
-  }
-
-  body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
-    @apply min-h-screen;
-    @apply transition-colors duration-200;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-medium tracking-tight;
-  }
-
-  h1 {
-    @apply text-3xl md:text-4xl;
-  }
-
-  h2 {
-    @apply text-2xl md:text-3xl;
-  }
-
-  h3 {
-    @apply text-xl md:text-2xl;
-  }
-}
-
+/* Custom component styles */
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-primary-600 text-white hover:bg-primary-700;
   }
 
   .btn-secondary {
-    @apply btn bg-secondary-100 text-secondary-800 hover:bg-secondary-200 dark:bg-secondary-800 dark:text-secondary-100 dark:hover:bg-secondary-700;
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
   }
 
-  .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6;
   }
 
   .input {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700;
   }
-
-  .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-smooth p-6 transition-all;
-  }
-
-  .card-hover {
-    @apply hover:shadow-hover hover:-translate-y-1;
-  }
-}
-
-/* React Big Calendar overrides */
-.rbc-calendar {
-  @apply rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800 dark:text-gray-100 transition-colors;
-}
-
-.rbc-month-view,
-.rbc-time-view {
-  @apply border-gray-200 dark:border-gray-700;
-}
-
-.rbc-header {
-  @apply bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 py-2 font-medium text-gray-600 dark:text-gray-300;
-}
-
-.rbc-day-bg {
-  @apply dark:bg-gray-800;
-}
-
-.rbc-today {
-  @apply bg-primary-50 dark:bg-primary-900/20;
-}
-
-.rbc-event {
-  @apply rounded-md shadow-sm dark:shadow-none;
-}
-
-.rbc-toolbar button {
-  @apply rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1 text-sm transition-colors;
-}
-
-.rbc-toolbar button:hover {
-  @apply bg-gray-100 dark:bg-gray-700;
-}
-
-.rbc-toolbar button.rbc-active {
-  @apply bg-primary-600 text-white border-primary-600 dark:bg-primary-700 dark:border-primary-700;
-}
-
-.rbc-toolbar button.rbc-active:hover {
-  @apply bg-primary-700 dark:bg-primary-800;
-}
-
-.rbc-off-range-bg {
-  @apply bg-gray-100 dark:bg-gray-700/40;
-}
-
-.rbc-time-content,
-.rbc-time-header-content {
-  @apply border-gray-200 dark:border-gray-700;
-}
-
-.rbc-day-slot .rbc-time-slot {
-  @apply border-gray-100 dark:border-gray-700;
 }
