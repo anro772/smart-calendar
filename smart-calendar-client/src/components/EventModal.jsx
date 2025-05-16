@@ -19,7 +19,6 @@ function EventModal({
     const [startTime, setStartTime] = useState('');
     const [endDate, setEndDate] = useState('');
     const [endTime, setEndTime] = useState('');
-    const [color, setColor] = useState('#3174ad');
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     useEffect(() => {
@@ -31,7 +30,6 @@ function EventModal({
             setStartTime(format(selectedEvent.start, 'HH:mm'));
             setEndDate(format(selectedEvent.end, 'yyyy-MM-dd'));
             setEndTime(format(selectedEvent.end, 'HH:mm'));
-            setColor(selectedEvent.color || '#3174ad');
         }
         // If creating a new event
         else if (selectedDate) {
@@ -52,8 +50,8 @@ function EventModal({
             title,
             description,
             start,
-            end,
-            color
+            end
+            // We're not setting a custom color anymore
         };
 
         if (selectedEvent) {
@@ -81,16 +79,6 @@ function EventModal({
             getSuggestions(description);
         }
     };
-
-    // Color options
-    const colorOptions = [
-        { value: '#3174ad', label: 'Blue' },
-        { value: '#16a34a', label: 'Green' },
-        { value: '#dc2626', label: 'Red' },
-        { value: '#9333ea', label: 'Purple' },
-        { value: '#ca8a04', label: 'Yellow' },
-        { value: '#0d9488', label: 'Teal' }
-    ];
 
     if (!show) return null;
 
@@ -126,7 +114,7 @@ function EventModal({
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                 placeholder="Event title"
                                 required
                             />
@@ -142,7 +130,7 @@ function EventModal({
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows="3"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                 placeholder="Add a description"
                             />
 
@@ -153,7 +141,7 @@ function EventModal({
                                     disabled={!description.trim() || isLoadingSuggestions}
                                     className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md ${!description.trim() || isLoadingSuggestions
                                             ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                                            : 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700'
+                                            : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
                                         }`}
                                 >
                                     {isLoadingSuggestions ? (
@@ -176,13 +164,13 @@ function EventModal({
                             </div>
 
                             {aiSuggestions && (
-                                <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500 rounded-r-md">
+                                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 rounded-r-md">
                                     <div className="flex">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                                         </svg>
                                         <div className="ml-2">
-                                            <h4 className="text-sm font-medium text-primary-800 dark:text-primary-400">
+                                            <h4 className="text-sm font-medium text-blue-800 dark:text-blue-400">
                                                 AI Suggestions:
                                             </h4>
                                             <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
@@ -206,7 +194,7 @@ function EventModal({
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                         required
                                     />
                                 </div>
@@ -219,7 +207,7 @@ function EventModal({
                                         type="time"
                                         value={startTime}
                                         onChange={(e) => setStartTime(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                         required
                                     />
                                 </div>
@@ -237,7 +225,7 @@ function EventModal({
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                         required
                                     />
                                 </div>
@@ -250,43 +238,14 @@ function EventModal({
                                         type="time"
                                         value={endTime}
                                         onChange={(e) => setEndTime(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                                         required
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Color Selection */}
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Event Color
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {colorOptions.map((colorOption) => (
-                                    <button
-                                        key={colorOption.value}
-                                        type="button"
-                                        onClick={() => setColor(colorOption.value)}
-                                        className={`w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${color === colorOption.value
-                                                ? 'ring-2 ring-offset-2 ring-gray-800 dark:ring-white'
-                                                : ''
-                                            }`}
-                                        style={{ backgroundColor: colorOption.value }}
-                                        title={colorOption.label}
-                                    >
-                                        <span className="sr-only">{colorOption.label}</span>
-                                    </button>
-                                ))}
-                                <input
-                                    type="color"
-                                    value={color}
-                                    onChange={(e) => setColor(e.target.value)}
-                                    className="w-8 h-8 p-0 border-0 rounded-full cursor-pointer"
-                                    title="Custom color"
-                                />
-                            </div>
-                        </div>
+                        {/* Removed the color selection section */}
                     </div>
 
                     {/* Modal Footer */}
@@ -318,7 +277,7 @@ function EventModal({
                             </button>
                             <button
                                 type="submit"
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
                                 {selectedEvent ? 'Update Event' : 'Save Event'}
                             </button>

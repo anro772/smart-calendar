@@ -5,25 +5,14 @@ import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
+import isSameDay from 'date-fns/isSameDay';
+import isSameMonth from 'date-fns/isSameMonth';
 import { addDoc, collection, query, where, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import EventModal from '../components/EventModal.jsx';
 import { fetchAISuggestions } from '../services/aiService.js';
 import enUS from 'date-fns/locale/en-US';
-
-// Icons
-const CalendarIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
-    </svg>
-);
-
-const PlusIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-);
 
 // Date-fns setup for the calendar
 const locales = {
@@ -38,6 +27,200 @@ const localizer = dateFnsLocalizer({
     locales
 });
 
+// Improved calendar styles
+const calendarStyles = `
+/* Base calendar styles */
+.rbc-calendar {
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Month view container */
+.rbc-month-view {
+    border: 1px solid #e0e0e0;
+    background-color: white;
+}
+
+/* Day cells */
+.rbc-day-bg {
+    transition: background-color 0.15s ease;
+}
+
+/* Day cells hover effect */
+.rbc-day-bg:hover {
+    background-color: #f0f9ff;
+}
+
+/* Off-range days (previous/next month) */
+.rbc-off-range-bg {
+    background-color: #f8f9fa;
+}
+
+.rbc-off-range {
+    color: #adb5bd;
+}
+
+/* Today's cell highlighting */
+.rbc-today {
+    background-color: #e6f7ff;
+}
+
+/* Header row styling */
+.rbc-header {
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    font-weight: 600;
+    border-bottom: 1px solid #e0e0e0;
+    color: #343a40;  /* Darker text for better visibility in both light and dark modes */
+}
+
+/* Dark mode adjustments */
+.dark .rbc-calendar {
+    background-color: #1e1e1e;
+    border-color: #4a4a4a;
+}
+
+.dark .rbc-month-view {
+    border-color: #4a4a4a;
+    background-color: #2d2d2d;
+}
+
+.dark .rbc-header {
+    background-color: #333;
+    border-color: #4a4a4a;
+    color: #e0e0e0;  /* Light text for dark mode */
+}
+
+.dark .rbc-day-bg {
+    background-color: #2d2d2d;
+}
+
+.dark .rbc-day-bg:hover {
+    background-color: #3a3a3a;
+}
+
+.dark .rbc-today {
+    background-color: #1a365d;  /* Dark blue for today in dark mode */
+}
+
+.dark .rbc-off-range-bg {
+    background-color: #262626;
+}
+
+.dark .rbc-off-range {
+    color: #666;
+}
+
+/* Event styling */
+.rbc-event {
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin: 1px 0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.rbc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Toolbar styling */
+.rbc-toolbar {
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0;
+}
+
+.dark .rbc-toolbar {
+    border-color: #4a4a4a;
+}
+
+.rbc-toolbar-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #343a40;  /* Darker for better visibility */
+}
+
+.dark .rbc-toolbar-label {
+    color: #e0e0e0;
+}
+
+.rbc-btn-group {
+    margin-bottom: 0;
+}
+
+.rbc-btn-group button {
+    color: #495057;
+    border-color: #ced4da;
+    background-color: white;
+    transition: all 0.15s ease;
+}
+
+.rbc-btn-group button:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.rbc-btn-group button.rbc-active {
+    background-color: #e6f7ff;
+    color: #0366d6;
+    border-color: #0366d6;
+}
+
+.dark .rbc-btn-group button {
+    color: #e0e0e0;
+    border-color: #4a4a4a;
+    background-color: #333;
+}
+
+.dark .rbc-btn-group button:hover {
+    background-color: #444;
+    border-color: #666;
+}
+
+.dark .rbc-btn-group button.rbc-active {
+    background-color: #1a365d;
+    color: #63b3ed;
+    border-color: #2b6cb0;
+}
+
+/* Time grid adjustments */
+.rbc-time-content {
+    border-top: 1px solid #e0e0e0;
+}
+
+.dark .rbc-time-content {
+    border-color: #4a4a4a;
+}
+
+.rbc-time-header-content {
+    border-left: 1px solid #e0e0e0;
+}
+
+.dark .rbc-time-header-content {
+    border-color: #4a4a4a;
+}
+
+.rbc-timeslot-group {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.dark .rbc-timeslot-group {
+    border-color: #3a3a3a;
+}
+
+.rbc-current-time-indicator {
+    background-color: #dc3545;
+    height: 2px;
+}
+`;
+
 function Calendar() {
     const [events, setEvents] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -48,6 +231,17 @@ function Calendar() {
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [view, setView] = useState('month');
     const [loading, setLoading] = useState(true);
+
+    // Inject custom styles
+    useEffect(() => {
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = calendarStyles;
+        document.head.appendChild(styleElement);
+
+        return () => {
+            document.head.removeChild(styleElement);
+        };
+    }, []);
 
     // Fetch events from Firestore
     useEffect(() => {
@@ -67,8 +261,8 @@ function Calendar() {
                         title: data.title,
                         start: data.start.toDate(),
                         end: data.end.toDate(),
-                        description: data.description,
-                        color: data.color
+                        description: data.description
+                        // Removed custom color to use defaults
                     });
                 });
                 setEvents(eventsData);
@@ -138,43 +332,107 @@ function Calendar() {
         }
     };
 
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Calendar</h1>
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        View and manage your schedule
-                    </p>
+    // Custom day cell renderer for better highlighting
+    const dayPropGetter = date => {
+        const today = new Date();
+
+        if (isSameDay(date, today)) {
+            return {
+                className: 'rbc-today',
+                style: {
+                    fontWeight: 'bold'
+                }
+            };
+        }
+
+        if (!isSameMonth(date, today)) {
+            return {
+                className: 'rbc-off-range',
+                style: {
+                    opacity: 0.6
+                }
+            };
+        }
+
+        return {};
+    };
+
+    // Custom component for our toolbar
+    function CustomToolbar(toolbar) {
+        const goToBack = () => {
+            toolbar.onNavigate('PREV');
+        };
+
+        const goToNext = () => {
+            toolbar.onNavigate('NEXT');
+        };
+
+        const goToToday = () => {
+            toolbar.onNavigate('TODAY');
+        };
+
+        return (
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        {toolbar.label}
+                    </h2>
+                    <div className="flex items-center space-x-2">
+                        <button
+                            type="button"
+                            onClick={goToBack}
+                            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                            </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={goToToday}
+                            className="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                        >
+                            Today
+                        </button>
+                        <button
+                            type="button"
+                            onClick={goToNext}
+                            className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
                     <div className="inline-flex rounded-md shadow-sm" role="group">
                         <button
                             type="button"
-                            onClick={() => setView('month')}
-                            className={`px-4 py-2 text-sm font-medium rounded-l-md ${view === 'month'
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            onClick={() => toolbar.onView('month')}
+                            className={`px-4 py-2 text-sm font-medium rounded-l-md border ${toolbar.view === 'month'
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Month
                         </button>
                         <button
                             type="button"
-                            onClick={() => setView('week')}
-                            className={`px-4 py-2 text-sm font-medium border-t border-b ${view === 'week'
-                                    ? 'bg-primary-600 text-white border-primary-600'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            onClick={() => toolbar.onView('week')}
+                            className={`px-4 py-2 text-sm font-medium border-t border-b ${toolbar.view === 'week'
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Week
                         </button>
                         <button
                             type="button"
-                            onClick={() => setView('day')}
-                            className={`px-4 py-2 text-sm font-medium border-t border-b border-r rounded-r-md ${view === 'day'
-                                    ? 'bg-primary-600 text-white border-primary-600'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            onClick={() => toolbar.onView('day')}
+                            className={`px-4 py-2 text-sm font-medium rounded-r-md border-t border-b border-r ${toolbar.view === 'day'
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Day
@@ -190,77 +448,54 @@ function Calendar() {
                             });
                             setShowModal(true);
                         }}
-                        className="btn-primary inline-flex items-center"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none transition-colors"
                     >
-                        <PlusIcon className="mr-1" /> Add Event
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Add Event
                     </button>
                 </div>
             </div>
+        );
+    }
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-8">
+                <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h1>
+                    <p className="mt-1 text-gray-600 dark:text-gray-400">
+                        View and manage your schedule
+                    </p>
+                </div>
+
                 {loading ? (
                     <div className="h-[600px] flex items-center justify-center">
                         <div className="flex flex-col items-center space-y-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
                             <p className="text-gray-600 dark:text-gray-400">Loading calendar...</p>
                         </div>
                     </div>
                 ) : (
-                    <BigCalendar
-                        localizer={localizer}
-                        events={events}
-                        startAccessor="start"
-                        endAccessor="end"
-                        style={{ height: 'calc(100vh - 240px)', minHeight: '600px' }}
-                        onSelectSlot={handleSelectSlot}
-                        onSelectEvent={handleSelectEvent}
-                        selectable
-                        view={view}
-                        onView={setView}
-                        eventPropGetter={(event) => ({
-                            style: {
-                                backgroundColor: event.color || '#3174ad'
-                            }
-                        })}
-                        dayPropGetter={(date) => {
-                            const today = new Date();
-                            return {
-                                className:
-                                    date.getDate() === today.getDate() &&
-                                        date.getMonth() === today.getMonth() &&
-                                        date.getFullYear() === today.getFullYear()
-                                        ? 'rbc-today'
-                                        : '',
-                                style: {
-                                    backgroundColor: ''
-                                }
-                            };
-                        }}
-                        components={{
-                            toolbar: (toolbarProps) => (
-                                <div className="rbc-toolbar">
-                                    <span className="rbc-btn-group">
-                                        <button type="button" onClick={() => toolbarProps.onNavigate('TODAY')}>Today</button>
-                                        <button type="button" onClick={() => toolbarProps.onNavigate('PREV')}>Back</button>
-                                        <button type="button" onClick={() => toolbarProps.onNavigate('NEXT')}>Next</button>
-                                    </span>
-                                    <span className="rbc-toolbar-label">{toolbarProps.label}</span>
-                                    <span className="rbc-btn-group hidden">
-                                        {toolbarProps.views.map(name => (
-                                            <button
-                                                key={name}
-                                                type="button"
-                                                onClick={() => toolbarProps.onView(name)}
-                                                className={toolbarProps.view === name ? 'rbc-active' : ''}
-                                            >
-                                                {name}
-                                            </button>
-                                        ))}
-                                    </span>
-                                </div>
-                            )
-                        }}
-                    />
+                    <div className="bg-white dark:bg-gray-800">
+                        <BigCalendar
+                            localizer={localizer}
+                            events={events}
+                            startAccessor="start"
+                            endAccessor="end"
+                            style={{ height: 'calc(100vh - 280px)', minHeight: '600px' }}
+                            onSelectSlot={handleSelectSlot}
+                            onSelectEvent={handleSelectEvent}
+                            selectable
+                            view={view}
+                            onView={setView}
+                            dayPropGetter={dayPropGetter}
+                            components={{
+                                toolbar: CustomToolbar
+                            }}
+                        />
+                    </div>
                 )}
             </div>
 
