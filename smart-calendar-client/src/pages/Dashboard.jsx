@@ -4,7 +4,31 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { getEventSummary } from '../services/aiService.js';
-import './Dashboard.css';
+
+// Icons
+const CalendarIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+    </svg>
+);
+
+const ArrowRightIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+    </svg>
+);
+
+const LightBulbIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+    </svg>
+);
+
+const WarningIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+    </svg>
+);
 
 function Dashboard() {
     const { currentUser } = useAuth();
@@ -19,6 +43,11 @@ function Dashboard() {
             weekday: 'short',
             month: 'short',
             day: 'numeric',
+        });
+    }
+
+    function formatTime(date) {
+        return new Date(date).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -46,7 +75,8 @@ function Dashboard() {
                     title: data.title,
                     start: startDate,
                     end: data.end.toDate(),
-                    description: data.description
+                    description: data.description,
+                    color: data.color || '#3174ad'
                 });
             }
         });
@@ -74,7 +104,8 @@ function Dashboard() {
                 title: data.title,
                 start: data.start.toDate(),
                 end: data.end.toDate(),
-                description: data.description
+                description: data.description,
+                color: data.color || '#3174ad'
             });
         });
 
@@ -134,60 +165,169 @@ function Dashboard() {
     }, [currentUser]);
 
     return (
-        <div className="dashboard-container">
-            <div className="dashboard-header">
-                <h1>Welcome to your Smart Calendar</h1>
-                <p>Manage your events and get AI-powered insights</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Page Header */}
+            <div className="text-center mb-10">
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Smart Calendar</h1>
+                <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                    Manage your schedule efficiently with AI-powered insights and suggestions
+                </p>
             </div>
 
+            {/* Error Alert */}
             {error && (
-                <div className="error-banner">
-                    <p>{error}</p>
-                    <p>For optimal performance, please check the console for a link to create the required index.</p>
+                <div className="mb-8 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-md shadow-sm">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0 pt-0.5">
+                            <WarningIcon />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-medium text-amber-800 dark:text-amber-300">Attention needed</h3>
+                            <div className="mt-2 text-sm text-amber-700 dark:text-amber-200">
+                                <p>{error}</p>
+                                <p className="mt-1">For optimal performance, please check the console for a link to create the required index.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 
-            <div className="dashboard-content">
-                <div className="dashboard-card upcoming-events">
-                    <h2>Upcoming Events</h2>
+            {/* Dashboard Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Upcoming Events Card */}
+                <div className="card transition-all">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold flex items-center">
+                            <CalendarIcon /><span className="ml-2">Upcoming Events</span>
+                        </h2>
+                        <Link to="/calendar" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium flex items-center">
+                            View Calendar <ArrowRightIcon className="ml-1 w-4 h-4" />
+                        </Link>
+                    </div>
 
                     {loading ? (
-                        <p className="loading-text">Loading events...</p>
+                        <div className="py-8">
+                            <div className="animate-pulse flex space-x-4">
+                                <div className="flex-1 space-y-4 py-1">
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                    <div className="space-y-2">
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="animate-pulse flex space-x-4 mt-6">
+                                <div className="flex-1 space-y-4 py-1">
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                    <div className="space-y-2">
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="animate-pulse flex space-x-4 mt-6">
+                                <div className="flex-1 space-y-4 py-1">
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                    <div className="space-y-2">
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ) : upcomingEvents.length > 0 ? (
-                        <div className="events-list">
+                        <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
                             {upcomingEvents.map((event) => (
-                                <div key={event.id} className="event-item">
-                                    <div className="event-time">{formatDate(event.start)}</div>
-                                    <div className="event-details">
-                                        <h3>{event.title}</h3>
-                                        {event.description && <p>{event.description}</p>}
+                                <div key={event.id} className="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div className="p-4 sm:px-6">
+                                        <div className="flex items-center justify-between">
+                                            <div className="font-medium text-gray-900 dark:text-white truncate pr-4">
+                                                {event.title}
+                                            </div>
+                                            <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                {formatTime(event.start)} - {formatTime(event.end)}
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 flex justify-between">
+                                            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-1">
+                                                {event.description || "No description"}
+                                            </p>
+                                            <div className="ml-4 flex-shrink-0">
+                                                <span className="inline-flex items-center text-xs font-medium">
+                                                    <span className="flex-shrink-0 w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: event.color }}></span>
+                                                    {formatDate(event.start)}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="no-events">No upcoming events in the next 7 days.</p>
+                        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                            <CalendarIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                            <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No upcoming events</h3>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                You don't have any events scheduled for the next 7 days.
+                            </p>
+                            <div className="mt-6">
+                                <Link
+                                    to="/calendar"
+                                    className="btn-primary inline-flex items-center"
+                                >
+                                    <CalendarIcon className="-ml-0.5 mr-1.5 h-4 w-4" />
+                                    Add New Event
+                                </Link>
+                            </div>
+                        </div>
                     )}
 
-                    <div className="card-footer">
-                        <Link to="/calendar" className="view-calendar-button">
-                            View Full Calendar
-                        </Link>
-                    </div>
+                    {upcomingEvents.length > 0 && (
+                        <div className="mt-6">
+                            <Link
+                                to="/calendar"
+                                className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                                <CalendarIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                                View Full Calendar
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
+                {/* AI Insights Card */}
                 {upcomingEvents.length > 0 && (
-                    <div className="dashboard-card event-summary">
-                        <h2>AI Schedule Summary</h2>
+                    <div className="card transition-all">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold flex items-center">
+                                <LightBulbIcon /><span className="ml-2">AI Insights</span>
+                            </h2>
+                        </div>
 
                         {summaryLoading ? (
-                            <p className="loading-text">Generating your smart summary...</p>
+                            <div className="py-8">
+                                <div className="animate-pulse space-y-4">
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                                </div>
+                            </div>
                         ) : eventSummary ? (
-                            <div className="summary-content">
-                                <p>{eventSummary}</p>
+                            <div className="rounded-lg border-l-4 border-primary-500 bg-primary-50 dark:bg-primary-900/20 p-4">
+                                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                                    {eventSummary}
+                                </div>
                             </div>
                         ) : (
-                            <p>No summary available.</p>
+                            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                                <LightBulbIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                                <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No insights available</h3>
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    We couldn't generate AI insights for your events at this time.
+                                </p>
+                            </div>
                         )}
                     </div>
                 )}
