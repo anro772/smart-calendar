@@ -4,6 +4,16 @@ import { format } from 'date-fns';
 // Import CSS file
 import '../styles/EventModal.css';
 
+// Predefined color options
+const colorOptions = [
+    { id: 'blue', value: '#3b82f6', label: 'Blue' },
+    { id: 'purple', value: '#8b5cf6', label: 'Purple' },
+    { id: 'red', value: '#ef4444', label: 'Red' },
+    { id: 'green', value: '#10b981', label: 'Green' },
+    { id: 'amber', value: '#f59e0b', label: 'Amber' },
+    { id: 'pink', value: '#ec4899', label: 'Pink' }
+];
+
 function EventModal({
     show,
     onClose,
@@ -22,6 +32,7 @@ function EventModal({
     const [startTime, setStartTime] = useState('');
     const [endDate, setEndDate] = useState('');
     const [endTime, setEndTime] = useState('');
+    const [selectedColor, setSelectedColor] = useState(colorOptions[0].value); // Default to blue
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     useEffect(() => {
@@ -33,6 +44,8 @@ function EventModal({
             setStartTime(format(selectedEvent.start, 'HH:mm'));
             setEndDate(format(selectedEvent.end, 'yyyy-MM-dd'));
             setEndTime(format(selectedEvent.end, 'HH:mm'));
+            // Set the color if it exists, otherwise default to blue
+            setSelectedColor(selectedEvent.color || colorOptions[0].value);
         }
         // If creating a new event
         else if (selectedDate) {
@@ -40,6 +53,7 @@ function EventModal({
             setStartTime(format(selectedDate.start, 'HH:mm'));
             setEndDate(format(selectedDate.end, 'yyyy-MM-dd'));
             setEndTime(format(selectedDate.end, 'HH:mm'));
+            setSelectedColor(colorOptions[0].value); // Default to blue for new events
         }
     }, [selectedEvent, selectedDate]);
 
@@ -53,8 +67,8 @@ function EventModal({
             title,
             description,
             start,
-            end
-            // We're not setting a custom color anymore
+            end,
+            color: selectedColor // Include the selected color
         };
 
         if (selectedEvent) {
@@ -240,7 +254,29 @@ function EventModal({
                             </div>
                         </div>
 
-                        {/* Removed the color selection section */}
+                        {/* Color Selection */}
+                        <div className="form-group">
+                            <label className="form-label">Event Color</label>
+                            <div className="color-options">
+                                {colorOptions.map((color) => (
+                                    <button
+                                        key={color.id}
+                                        type="button"
+                                        className={`color-option ${selectedColor === color.value ? 'color-selected' : ''}`}
+                                        style={{ backgroundColor: color.value }}
+                                        title={color.label}
+                                        onClick={() => setSelectedColor(color.value)}
+                                        aria-label={`Set event color to ${color.label}`}
+                                    >
+                                        {selectedColor === color.value && (
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="color-check-icon">
+                                                <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Modal Footer */}

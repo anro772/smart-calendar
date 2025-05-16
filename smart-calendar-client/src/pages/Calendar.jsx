@@ -59,8 +59,8 @@ function Calendar() {
                         title: data.title,
                         start: data.start.toDate(),
                         end: data.end.toDate(),
-                        description: data.description
-                        // Removed custom color to use defaults
+                        description: data.description,
+                        color: data.color || '#3b82f6' // Include color with default fallback
                     });
                 });
                 setEvents(eventsData);
@@ -70,6 +70,16 @@ function Calendar() {
             return unsubscribe;
         }
     }, [currentUser]);
+
+    // Event style getter to apply custom colors
+    const eventStyleGetter = (event) => {
+        return {
+            style: {
+                backgroundColor: event.color,
+                borderColor: event.color
+            }
+        };
+    };
 
     // Handle slot selection (creating a new event)
     const handleSelectSlot = (slotInfo) => {
@@ -209,8 +219,8 @@ function Calendar() {
                             type="button"
                             onClick={() => toolbar.onView('month')}
                             className={`px-4 py-2 text-sm font-medium rounded-l-md border ${toolbar.view === 'month'
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Month
@@ -219,8 +229,8 @@ function Calendar() {
                             type="button"
                             onClick={() => toolbar.onView('week')}
                             className={`px-4 py-2 text-sm font-medium border-t border-b ${toolbar.view === 'week'
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Week
@@ -229,8 +239,8 @@ function Calendar() {
                             type="button"
                             onClick={() => toolbar.onView('day')}
                             className={`px-4 py-2 text-sm font-medium rounded-r-md border-t border-b border-r ${toolbar.view === 'day'
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
                         >
                             Day
@@ -289,6 +299,7 @@ function Calendar() {
                             view={view}
                             onView={setView}
                             dayPropGetter={dayPropGetter}
+                            eventPropGetter={eventStyleGetter} // Add event style getter for colors
                             components={{
                                 toolbar: CustomToolbar
                             }}

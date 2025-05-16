@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { getEventSummary } from '../services/aiService.js';
+import '../styles/Dashboard.css'; // Make sure CSS is imported
 
 function Dashboard() {
     const { currentUser } = useAuth();
@@ -140,7 +141,7 @@ function Dashboard() {
     }, [currentUser]);
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="dashboard-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Page Header */}
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome to Smart Calendar</h1>
@@ -154,7 +155,7 @@ function Dashboard() {
                 <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded">
                     <div className="flex">
                         <div className="flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-amber-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="error-banner-icon w-5 h-5 text-amber-500">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                             </svg>
                         </div>
@@ -176,7 +177,7 @@ function Dashboard() {
                     <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="dashboard-card-title-icon w-5 h-5 mr-2 text-primary-600 dark:text-primary-500">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                 </svg>
                                 Upcoming Events
@@ -198,7 +199,7 @@ function Dashboard() {
                         ) : upcomingEvents.length > 0 ? (
                             <div className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {upcomingEvents.map((event) => (
-                                    <div key={event.id} className="py-4 first:pt-0 last:pb-0">
+                                    <div key={event.id} className="py-4 first:pt-0 last:pb-0 event-item">
                                         <div className="flex justify-between">
                                             <h3 className="text-sm font-medium text-gray-900 dark:text-white">{event.title}</h3>
                                             <div className="flex items-center">
@@ -221,7 +222,7 @@ function Dashboard() {
                             </div>
                         ) : (
                             <div className="text-center py-10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="empty-state-icon w-12 h-12 mx-auto text-gray-400 dark:text-gray-600">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                 </svg>
                                 <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No upcoming events</h3>
@@ -230,6 +231,9 @@ function Dashboard() {
                                 </p>
                                 <div className="mt-6">
                                     <Link to="/calendar" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="empty-state-button-icon w-5 h-5 mr-2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
                                         Add New Event
                                     </Link>
                                 </div>
@@ -243,7 +247,7 @@ function Dashboard() {
                                 to="/calendar"
                                 className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="dashboard-button-icon w-5 h-5 mr-2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                 </svg>
                                 View Full Calendar
@@ -257,7 +261,7 @@ function Dashboard() {
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
                         <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
                             <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="dashboard-card-title-icon w-5 h-5 mr-2 text-primary-600 dark:text-primary-500">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                                 </svg>
                                 AI Schedule Summary
@@ -274,14 +278,13 @@ function Dashboard() {
                                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
                                 </div>
                             ) : eventSummary ? (
-                                <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-md border-l-4 border-primary-500">
-                                    <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-line">
-                                        {eventSummary}
-                                    </p>
-                                </div>
+                                <div
+                                    className="summary-container"
+                                    dangerouslySetInnerHTML={{ __html: eventSummary }}
+                                />
                             ) : (
                                 <div className="text-center py-10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="empty-state-icon w-12 h-12 mx-auto text-gray-400 dark:text-gray-600">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                                     </svg>
                                     <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No summary available</h3>
