@@ -7,6 +7,8 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import isSameDay from 'date-fns/isSameDay';
 import isSameMonth from 'date-fns/isSameMonth';
+import addMonths from 'date-fns/addMonths';
+import subMonths from 'date-fns/subMonths';
 import { addDoc, collection, query, where, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
@@ -40,6 +42,7 @@ function Calendar() {
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [view, setView] = useState('month');
     const [loading, setLoading] = useState(true);
+    const [currentDate, setCurrentDate] = useState(new Date()); // Track the current displayed date
 
     // Fetch events from Firestore
     useEffect(() => {
@@ -79,6 +82,12 @@ function Calendar() {
                 borderColor: event.color
             }
         };
+    };
+
+    // Handle calendar navigation (month/week/day changes)
+    const handleNavigate = (date, view, action) => {
+        console.log(`Navigating: ${action}, Date: ${date}, View: ${view}`);
+        setCurrentDate(date);
     };
 
     // Handle slot selection (creating a new event)
@@ -171,14 +180,17 @@ function Calendar() {
     // Custom component for our toolbar
     function CustomToolbar(toolbar) {
         const goToBack = () => {
+            console.log("Going back");
             toolbar.onNavigate('PREV');
         };
 
         const goToNext = () => {
+            console.log("Going forward");
             toolbar.onNavigate('NEXT');
         };
 
         const goToToday = () => {
+            console.log("Going to today");
             toolbar.onNavigate('TODAY');
         };
 
@@ -301,8 +313,10 @@ function Calendar() {
                             selectable
                             view={view}
                             onView={setView}
+                            date={currentDate}
+                            onNavigate={handleNavigate}
                             dayPropGetter={dayPropGetter}
-                            eventPropGetter={eventStyleGetter} // Add event style getter for colors
+                            eventPropGetter={eventStyleGetter}
                             components={{
                                 toolbar: CustomToolbar
                             }}

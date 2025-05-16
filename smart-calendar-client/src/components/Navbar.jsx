@@ -1,37 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react'; // Removed useEffect as it's not needed for dark mode here
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx'; // Ensure this path is correct
 
-function Navbar() {
+// Navbar now receives isDarkMode and toggleDarkMode as props
+function Navbar({ isDarkMode, toggleDarkMode }) {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const [darkMode, setDarkMode] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // Toggle dark mode
-    useEffect(() => {
-        if (localStorage.getItem('darkMode') === 'true' ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches &&
-                localStorage.getItem('darkMode') === null)) {
-            setDarkMode(true);
-            document.documentElement.classList.add('dark');
-        } else {
-            setDarkMode(false);
-            document.documentElement.classList.remove('dark');
-        }
-    }, []);
-
-    const toggleDarkMode = () => {
-        const newDarkMode = !darkMode;
-        setDarkMode(newDarkMode);
-        localStorage.setItem('darkMode', newDarkMode.toString());
-        if (newDarkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    };
+    // Dark mode logic is now handled by App.js and passed via props
+    // The useEffect for initializing dark mode and the old toggleDarkMode function are removed.
 
     const handleLogout = async () => {
         try {
@@ -43,7 +22,8 @@ function Navbar() {
     };
 
     return (
-        <nav className="bg-white dark:bg-gray-800 shadow-sm">
+        // Navbar styling itself will react to the 'dark' class on <html>
+        <nav className="bg-white dark:bg-gray-800 shadow-sm fixed w-full top-0 z-50 transition-colors duration-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
@@ -62,8 +42,8 @@ function Navbar() {
                             <Link
                                 to="/"
                                 className={`px-3 py-2 rounded-md text-sm font-medium ${location.pathname === '/'
-                                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
-                                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                    ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-primary-300' // Adjusted dark active bg
+                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 Dashboard
@@ -71,8 +51,8 @@ function Navbar() {
                             <Link
                                 to="/calendar"
                                 className={`px-3 py-2 rounded-md text-sm font-medium ${location.pathname === '/calendar'
-                                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
-                                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                    ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-primary-300' // Adjusted dark active bg
+                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 Calendar
@@ -82,18 +62,18 @@ function Navbar() {
 
                     {/* Right side - User menu and dark mode toggle */}
                     <div className="flex items-center">
-                        {/* Dark mode toggle */}
+                        {/* Dark mode toggle - uses props now */}
                         <button
-                            onClick={toggleDarkMode}
+                            onClick={toggleDarkMode} // Use the passed toggleDarkMode function
                             className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-                            aria-label="Toggle dark mode"
+                            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
                         >
-                            {darkMode ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            {isDarkMode ? ( // Use the passed isDarkMode state
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"> {/* Sun icon */}
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
                                 </svg>
                             ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"> {/* Moon icon */}
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75A9.75 9.75 0 0 1 8.25 6c0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 8.252-4.748Z" />
                                 </svg>
                             )}
@@ -142,8 +122,8 @@ function Navbar() {
                         <Link
                             to="/"
                             className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/'
-                                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
-                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-primary-300' // Adjusted dark active bg
+                                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                 }`}
                             onClick={() => setMobileMenuOpen(false)}
                         >
@@ -152,8 +132,8 @@ function Navbar() {
                         <Link
                             to="/calendar"
                             className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/calendar'
-                                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
-                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                                ? 'bg-primary-50 text-primary-700 dark:bg-gray-700 dark:text-primary-300' // Adjusted dark active bg
+                                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                                 }`}
                             onClick={() => setMobileMenuOpen(false)}
                         >

@@ -77,182 +77,157 @@ app.post(['/api/summary', '/summary'], async (req, res) => {
             return res.status(400).json({ error: 'Valid events array is required' });
         }
 
-        // Format events for the prompt
+        // Format events for the prompt - make it more concise to avoid large responses
         const eventsText = events.map(event =>
-            `- ${event.title} on ${new Date(event.start).toLocaleDateString()} from ${new Date(event.start).toLocaleTimeString()} to ${new Date(event.end).toLocaleTimeString()}: ${event.description || 'No description'}`
+            `- "${event.title}" on ${new Date(event.start).toLocaleDateString()}: ${event.description ? event.description.substring(0, 100) + (event.description.length > 100 ? '...' : '') : 'No description'}`
         ).join('\n');
 
-        // Generate structured content with Gemini using a schema
-        const response = await genAI.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: `Analyze these upcoming calendar events and provide a structured summary:
-            
-            ${eventsText}
-            
-            Create a structured summary with important details and actionable advice. IMPORTANT: Always include preparations and priorities sections. Even for simple events, provide at least 2-3 preparations and 2-3 priorities.`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        overview: {
-                            type: Type.STRING,
-                            description: "A brief summary of the schedule overall"
-                        },
-                        events: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    title: {
-                                        type: Type.STRING,
-                                        description: "The title of the event"
-                                    },
-                                    date: {
-                                        type: Type.STRING,
-                                        description: "The formatted date of the event"
-                                    },
-                                    time: {
-                                        type: Type.STRING,
-                                        description: "The formatted time of the event"
-                                    },
-                                    description: {
-                                        type: Type.STRING,
-                                        description: "Description of the event"
-                                    },
-                                    key_points: {
-                                        type: Type.ARRAY,
-                                        items: {
-                                            type: Type.STRING
-                                        },
-                                        description: "Key points or highlights about this event"
-                                    }
-                                }
-                            }
-                        },
-                        preparations: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.STRING
-                            },
-                            description: "List of preparations or actions needed for these events - ALWAYS include at least 2-3 items"
-                        },
-                        priorities: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.STRING
-                            },
-                            description: "Prioritized items that need attention - ALWAYS include at least 2-3 items"
-                        }
-                    }
-                }
-            }
-        });
-
-        // Parse the JSON response
-        let summaryData;
+        // Use a more structured prompt to guide Gemini
         try {
-            summaryData = JSON.parse(response.text);
+            // Break down the request into smaller chunks to avoid JSON parsing issues
+            // First, get a concise summary of each event
+            const eventSummariesResponse = await genAI.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: `For each of these calendar events, provide a very brief 1-2 sentence highlight (not a copy of the description):
+                
+                ${eventsText}
+                
+                Return ONLY a JSON array where each item has "title" and "highlight" keys, with no introduction or explanation:`,
+                config: {
+                    temperature: 0.2,  // Lower temperature for more consistent output
+                    maxOutputTokens: 800,
+                    responseMimeType: "application/json"
+                }
+            });
 
-            // Add default values if sections are missing
-            if (!summaryData.overview) {
-                summaryData.overview = "Here's a summary of your upcoming schedule.";
-            }
-
-            if (!summaryData.events || summaryData.events.length === 0) {
-                summaryData.events = events.map(event => ({
+            let eventSummaries = [];
+            try {
+                // Try to parse the event summaries
+                const summariesText = eventSummariesResponse.text.trim();
+                // Sometimes Gemini wraps JSON in unnecessary markdown blocks - try to extract just the JSON
+                const jsonMatch = summariesText.match(/```json\s*([\s\S]*?)\s*```/) ||
+                    summariesText.match(/```\s*([\s\S]*?)\s*```/) ||
+                    [null, summariesText];
+                eventSummaries = JSON.parse(jsonMatch[1] || summariesText);
+            } catch (error) {
+                console.error("Error parsing event summaries:", error);
+                // Create fallback summaries if parsing fails
+                eventSummaries = events.map(event => ({
                     title: event.title,
-                    date: new Date(event.start).toLocaleDateString(),
-                    time: `${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`,
-                    description: event.description || "No description provided.",
-                    key_points: ["Mark your calendar for this event."]
+                    highlight: "Key event in your schedule."
                 }));
             }
 
-            // Ensure preparations and priorities exist
-            if (!summaryData.preparations || summaryData.preparations.length === 0) {
-                summaryData.preparations = [
-                    "Set reminders for your events",
-                    "Review event details in advance",
-                    "Update your calendar with any changes"
+            // Now, get preparations
+            const preparationsResponse = await genAI.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: `Based on these upcoming events:
+                
+                ${eventsText}
+                
+                Provide 3-5 specific preparation actions the person should take. Return ONLY a JSON array of strings, with no introduction:`,
+                config: {
+                    temperature: 0.3,
+                    maxOutputTokens: 400,
+                    responseMimeType: "application/json"
+                }
+            });
+
+            let preparations = [];
+            try {
+                const prepText = preparationsResponse.text.trim();
+                const jsonMatch = prepText.match(/```json\s*([\s\S]*?)\s*```/) ||
+                    prepText.match(/```\s*([\s\S]*?)\s*```/) ||
+                    [null, prepText];
+                preparations = JSON.parse(jsonMatch[1] || prepText);
+            } catch (error) {
+                console.error("Error parsing preparations:", error);
+                preparations = [
+                    "Review all event details in advance",
+                    "Set reminders for each upcoming event",
+                    "Prepare any necessary materials",
+                    "Confirm attendance with relevant parties"
                 ];
             }
 
-            if (!summaryData.priorities || summaryData.priorities.length === 0) {
-                summaryData.priorities = [
-                    "Confirm attendance for upcoming events",
-                    "Prepare any required materials",
-                    "Plan travel time if needed"
+            // Finally, get priorities
+            const prioritiesResponse = await genAI.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: `Based on these upcoming events:
+                
+                ${eventsText}
+                
+                Provide 3-5 specific priority items the person should focus on. Return ONLY a JSON array of strings, with no introduction:`,
+                config: {
+                    temperature: 0.3,
+                    maxOutputTokens: 400,
+                    responseMimeType: "application/json"
+                }
+            });
+
+            let priorities = [];
+            try {
+                const prioritiesText = prioritiesResponse.text.trim();
+                const jsonMatch = prioritiesText.match(/```json\s*([\s\S]*?)\s*```/) ||
+                    prioritiesText.match(/```\s*([\s\S]*?)\s*```/) ||
+                    [null, prioritiesText];
+                priorities = JSON.parse(jsonMatch[1] || prioritiesText);
+            } catch (error) {
+                console.error("Error parsing priorities:", error);
+                priorities = [
+                    "Focus on the most time-sensitive events first",
+                    "Allocate adequate preparation time for each event",
+                    "Follow up on any outstanding commitments",
+                    "Balance your schedule to avoid overcommitment"
                 ];
             }
 
-            // Generate a formatted HTML summary from the structured data
+            // Get a brief overview
+            const overviewResponse = await genAI.models.generateContent({
+                model: "gemini-2.0-flash",
+                contents: `Based on these upcoming events:
+                
+                ${eventsText}
+                
+                Provide a very brief 1-2 sentence overview of the upcoming schedule. Return ONLY the text with no quotation marks or formatting:`,
+                config: {
+                    temperature: 0.3,
+                    maxOutputTokens: 150
+                }
+            });
+
+            const overview = overviewResponse.text.trim();
+
+            // Now build the complete summary data
+            const summaryData = {
+                overview: overview,
+                events: events.map((event, index) => {
+                    const summary = eventSummaries[index] || { highlight: "Important event on your calendar." };
+                    return {
+                        title: event.title,
+                        date: new Date(event.start).toLocaleDateString(),
+                        time: `${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`,
+                        description: event.description || "No description provided.",
+                        key_points: [summary.highlight || "Key event in your schedule."]
+                    };
+                }),
+                preparations: preparations,
+                priorities: priorities
+            };
+
+            // Generate HTML summary
             const formattedSummary = formatSummaryFromJSON(summaryData);
 
+            // Send response
             res.json({
                 summary: formattedSummary,
-                rawData: summaryData  // Include the raw data for advanced use cases
+                rawData: summaryData
             });
-        } catch (parseError) {
-            console.error('Error parsing JSON response:', parseError);
 
-            // Create a default summary if JSON parsing fails
-            const defaultSummary = {
-                overview: "Here's a summary of your upcoming schedule.",
-                events: events.map(event => ({
-                    title: event.title,
-                    date: new Date(event.start).toLocaleDateString(),
-                    time: `${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`,
-                    description: event.description || "No description provided.",
-                    key_points: ["Mark your calendar for this event."]
-                })),
-                preparations: [
-                    "Set reminders for your events",
-                    "Review event details in advance",
-                    "Update your calendar with any changes"
-                ],
-                priorities: [
-                    "Confirm attendance for upcoming events",
-                    "Prepare any required materials",
-                    "Plan travel time if needed"
-                ]
-            };
-
-            const formattedSummary = formatSummaryFromJSON(defaultSummary);
-
-            // Return fallback formatted content
-            res.json({
-                summary: formattedSummary,
-                rawData: defaultSummary
-            });
-        }
-    } catch (error) {
-        console.error('Error generating summary:', error);
-
-        // Create emergency fallback content when API fails completely
-        try {
-            const events = req.body.events || [];
-            const fallbackSummary = {
-                overview: "Here's a basic summary of your upcoming schedule.",
-                events: events.map(event => ({
-                    title: event.title || "Untitled Event",
-                    date: new Date(event.start).toLocaleDateString(),
-                    time: `${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`,
-                    description: event.description || "No description provided.",
-                    key_points: ["Event scheduled"]
-                })),
-                preparations: [
-                    "Set reminders for your events",
-                    "Review event details in advance",
-                    "Update your calendar with any changes"
-                ],
-                priorities: [
-                    "Confirm attendance for upcoming events",
-                    "Prepare any required materials",
-                    "Plan travel time if needed"
-                ]
-            };
-
+        } catch (geminiError) {
+            console.error('Error with Gemini API:', geminiError);
+            // Create fallback summary if any part of the Gemini calls fail
+            const fallbackSummary = createFallbackSummary(events);
             const formattedSummary = formatSummaryFromJSON(fallbackSummary);
 
             res.json({
@@ -260,16 +235,44 @@ app.post(['/api/summary', '/summary'], async (req, res) => {
                 rawData: fallbackSummary,
                 note: "Using fallback data due to API error"
             });
-        } catch (fallbackError) {
-            // If even the fallback fails, send a simple error
-            res.status(500).json({
-                error: 'Failed to generate summary',
-                details: error.message,
-                summary: '<div class="structured-summary"><p class="summary-overview">Unable to generate a summary at this time. Please try again later.</p></div>'
-            });
         }
+
+    } catch (error) {
+        console.error('Error generating summary:', error);
+        // If all else fails, send a minimal response
+        res.status(500).json({
+            error: 'Failed to generate summary',
+            details: error.message,
+            summary: '<div class="structured-summary"><p class="summary-overview">Unable to generate a summary at this time. Please try again later.</p></div>'
+        });
     }
 });
+
+// Helper function to create a fallback summary when Gemini fails
+function createFallbackSummary(events) {
+    return {
+        overview: "Here's a summary of your upcoming events.",
+        events: events.map(event => ({
+            title: event.title,
+            date: new Date(event.start).toLocaleDateString(),
+            time: `${new Date(event.start).toLocaleTimeString()} - ${new Date(event.end).toLocaleTimeString()}`,
+            description: event.description || "No description provided.",
+            key_points: ["Review details for this event."]
+        })),
+        preparations: [
+            "Review details for all upcoming events",
+            "Set reminders on your phone or calendar",
+            "Check for any schedule conflicts",
+            "Prepare necessary materials in advance"
+        ],
+        priorities: [
+            "Attend to time-sensitive events first",
+            "Confirm attendance for all events",
+            "Allow enough travel time between events",
+            "Follow up on any required actions"
+        ]
+    };
+}
 
 // Updated function to format the JSON summary using the correct CSS classes
 function formatSummaryFromJSON(data) {
