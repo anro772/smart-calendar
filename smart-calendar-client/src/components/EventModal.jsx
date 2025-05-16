@@ -34,7 +34,9 @@ function EventModal({
     const [endTime, setEndTime] = useState('');
     const [selectedColor, setSelectedColor] = useState(colorOptions[0].value); // Default to blue
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [aiSuggestedColor, setAiSuggestedColor] = useState(''); // Track AI's color suggestion
 
+    // Load event data when editing an existing event or creating a new one
     useEffect(() => {
         // If editing an existing event
         if (selectedEvent) {
@@ -56,6 +58,14 @@ function EventModal({
             setSelectedColor(colorOptions[0].value); // Default to blue for new events
         }
     }, [selectedEvent, selectedDate]);
+
+    // Track AI color suggestions
+    useEffect(() => {
+        // If AI suggests a color, store it
+        if (aiSuggestions && aiSuggestions.color) {
+            setAiSuggestedColor(aiSuggestions.color);
+        }
+    }, [aiSuggestions]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -94,6 +104,26 @@ function EventModal({
     const handleGetSuggestions = () => {
         if (description.trim()) {
             getSuggestions(description);
+        }
+    };
+
+    const handleApplyAiSuggestions = () => {
+        if (aiSuggestions && aiSuggestions.suggestions) {
+            // Append AI suggestions to existing description
+            setDescription(prev => {
+                const currentDesc = prev.trim();
+                const aiDesc = aiSuggestions.suggestions.trim();
+
+                // Add a separator if there's already content
+                return currentDesc
+                    ? `${currentDesc}\n\n---\nAI Suggestions:\n${aiDesc}`
+                    : aiDesc;
+            });
+
+            // Apply AI suggested color if available
+            if (aiSuggestions.color && aiSuggestedColor) {
+                setSelectedColor(aiSuggestedColor);
+            }
         }
     };
 
@@ -176,7 +206,7 @@ function EventModal({
                                 </button>
                             </div>
 
-                            {aiSuggestions && (
+                            {aiSuggestions && aiSuggestions.suggestions && (
                                 <div className="ai-suggestions-box">
                                     <div className="ai-suggestions-title">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="ai-suggestions-icon">
@@ -185,8 +215,32 @@ function EventModal({
                                         AI Suggestions:
                                     </div>
                                     <p className="ai-suggestions-content">
-                                        {aiSuggestions}
+                                        {aiSuggestions.suggestions}
                                     </p>
+
+                                    {aiSuggestedColor && (
+                                        <div className="ai-suggested-color">
+                                            <span className="ai-suggested-color-label">Suggested color:</span>
+                                            <div
+                                                className="ai-color-preview"
+                                                style={{ backgroundColor: aiSuggestedColor }}
+                                                title="AI suggested color"
+                                            ></div>
+                                        </div>
+                                    )}
+
+                                    <div className="ai-suggestions-actions">
+                                        <button
+                                            type="button"
+                                            onClick={handleApplyAiSuggestions}
+                                            className="apply-suggestions-button"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="btn-icon">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                            </svg>
+                                            Apply AI Suggestions
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>

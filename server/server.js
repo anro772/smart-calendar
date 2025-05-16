@@ -29,17 +29,43 @@ app.post(['/api/suggestions', '/suggestions'], async (req, res) => {
         // Generate content with Gemini
         const response = await genAI.models.generateContent({
             model: "gemini-2.0-flash",
-            contents: `You are a helpful assistant that provides suggestions for calendar events. Provide short, practical advice for planning this event.
+            contents: `You are a helpful assistant that provides suggestions for calendar events. Provide short, practical advice for planning this event, and suggest an appropriate color for the event based on its type or mood.
             
-            I'm planning this event: ${description}. Can you give me some suggestions or tips for it?`
+            I'm planning this event: ${description}. Can you give me some suggestions or tips for it, and also suggest a color that would best represent this type of event?
+            
+            Return your response as a JSON object with "suggestions" for the text suggestions and "color" for the color suggestion. For color, provide one of these hex values only:
+            - blue: #3b82f6 (default for work/business)
+            - purple: #8b5cf6 (for creative or learning)
+            - red: #ef4444 (for urgent/important)
+            - green: #10b981 (for health/wellness/nature)
+            - amber: #f59e0b (for social/fun)
+            - pink: #ec4899 (for personal/family)`,
+            config: {
+                responseMimeType: "application/json"
+            }
         });
 
-        const suggestions = response.text;
-
-        res.json({ suggestions });
+        // Parse the JSON response
+        let responseData;
+        try {
+            responseData = JSON.parse(response.text);
+            res.json(responseData);
+        } catch (parseError) {
+            console.error('Error parsing JSON response:', parseError);
+            // Fallback for non-JSON responses
+            res.json({
+                suggestions: response.text,
+                color: "#3b82f6" // Default to blue
+            });
+        }
     } catch (error) {
         console.error('Error generating suggestions:', error);
-        res.status(500).json({ error: 'Failed to generate suggestions', details: error.message });
+        res.status(500).json({
+            error: 'Failed to generate suggestions',
+            details: error.message,
+            suggestions: "Unable to get suggestions at this time.",
+            color: "#3b82f6" // Default to blue
+        });
     }
 });
 

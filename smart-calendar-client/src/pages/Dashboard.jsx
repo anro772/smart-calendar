@@ -30,7 +30,7 @@ function Dashboard() {
     }
 
     // Simple function to fetch events
-    const getEventsWithSimpleQuery = async (now, nextWeek) => {
+    const getEventsWithSimpleQuery = async (startOfToday, nextWeek) => {
         const eventsRef = collection(db, 'events');
         const simpleQuery = query(
             eventsRef,
@@ -44,8 +44,8 @@ function Dashboard() {
             const data = doc.data();
             const startDate = data.start.toDate();
 
-            // Filter dates in JavaScript
-            if (startDate >= now && startDate <= nextWeek) {
+            // Filter dates in JavaScript to include events starting today or in the future
+            if (startDate >= startOfToday && startDate <= nextWeek) {
                 result.push({
                     id: doc.id,
                     title: data.title,
@@ -61,12 +61,12 @@ function Dashboard() {
     };
 
     // Function to fetch events with complex query
-    const getEventsWithComplexQuery = async (now, nextWeek) => {
+    const getEventsWithComplexQuery = async (startOfToday, nextWeek) => {
         const eventsRef = collection(db, 'events');
         const complexQuery = query(
             eventsRef,
             where('userId', '==', currentUser.uid),
-            where('start', '>=', now),
+            where('start', '>=', startOfToday),
             where('start', '<=', nextWeek)
         );
 
@@ -93,20 +93,24 @@ function Dashboard() {
             if (!currentUser) return;
 
             try {
-                const now = new Date();
+                // Ensure we start from the beginning of today (midnight)
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+
                 const nextWeek = new Date();
-                nextWeek.setDate(now.getDate() + 7);
+                nextWeek.setDate(startOfToday.getDate() + 7);
+                nextWeek.setHours(23, 59, 59, 999); // End of the last day
 
                 let fetchedEvents = [];
 
                 // Try the complex query first
                 try {
-                    fetchedEvents = await getEventsWithComplexQuery(now, nextWeek);
+                    fetchedEvents = await getEventsWithComplexQuery(startOfToday, nextWeek);
                 } catch (indexError) {
                     // If it fails, use the simple query
                     if (indexError.message.includes('index')) {
                         setError('Please create the required Firestore index by clicking the link in the console error message.');
-                        fetchedEvents = await getEventsWithSimpleQuery(now, nextWeek);
+                        fetchedEvents = await getEventsWithSimpleQuery(startOfToday, nextWeek);
                     } else {
                         throw indexError;
                     }

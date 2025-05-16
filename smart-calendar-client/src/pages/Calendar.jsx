@@ -130,11 +130,14 @@ function Calendar() {
     const getSuggestions = async (eventDescription) => {
         setIsLoadingSuggestions(true);
         try {
-            const suggestions = await fetchAISuggestions(eventDescription);
-            setAiSuggestions(suggestions);
+            const suggestionsData = await fetchAISuggestions(eventDescription);
+            setAiSuggestions(suggestionsData);
         } catch (error) {
             console.error('Error getting AI suggestions: ', error);
-            setAiSuggestions('Unable to get suggestions at this time');
+            setAiSuggestions({
+                suggestions: 'Unable to get suggestions at this time',
+                color: '#3b82f6' // Default blue
+            });
         } finally {
             setIsLoadingSuggestions(false);
         }
