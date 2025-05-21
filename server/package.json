@@ -2,10 +2,10 @@
     "name": "smart-calendar-backend",
     "version": "1.0.0",
     "description": "Backend for Smart Calendar application",
-    "main": "server.js",
+    "main": "index.js",
     "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js"
+        "start": "node index.js",
+        "dev": "nodemon index.js"
     },
     "dependencies": {
         "@google/genai": "^0.14.1",
