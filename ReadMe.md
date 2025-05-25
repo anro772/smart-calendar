@@ -82,10 +82,10 @@ EOF
 4. **Start the Application**
 ```bash
 # Start backend (in server directory)
-npm start
+npm run start
 
 # Start frontend (in smart-calendar-client directory)
-npm run dev
+npm run start
 ```
 
 Visit `http://localhost:5173` to use the application.
